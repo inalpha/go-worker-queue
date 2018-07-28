@@ -18,10 +18,8 @@ func (w *WorkRequest) Do() {
 	time.Sleep(w.Delay)
 }
 
-var WorkQueue = make(chan worker.Work, 100)
-
 func main() {
-	worker.Queue(2000, WorkQueue)
+	q := worker.NewQueue(2000)
 	http.HandleFunc("/work", func (w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			w.Header().Set("Allow", "POST")
@@ -46,9 +44,7 @@ func main() {
     		return
 		}
 
-		work := WorkRequest{Name: name, Delay: delay}
-  
-  		WorkQueue <- &work
+		q.Submit(&WorkRequest{Name: name, Delay: delay})
 
 		w.WriteHeader(http.StatusCreated)
 	})
